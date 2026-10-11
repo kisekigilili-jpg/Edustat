@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<section class="page-heading">
+    <div><div class="eyebrow">CLASS OVERVIEW</div><h1>Reports</h1><p class="muted">Search your students and review progress by assessment type.</p></div>
+    <a class="button secondary" href="/export.xlsx">Download Excel <span aria-hidden="true">↓</span></a>
+</section>
+<section class="card report-card">
+    <form action="/reports" method="get" class="search-form">
+        <label class="search-field"><span class="sr-only">Search students</span><span aria-hidden="true">⌕</span><input name="search" value="{{ search }}" placeholder="Search by name, student number, or grade"></label>
+        <button class="button primary" type="submit">Search</button>
+        {% if search %}<a class="button secondary" href="/reports">Clear</a>{% endif %}
+    </form>
+    <p class="result-count">{% if search %}{{ students|length }} result(s) for “{{ search }}”{% else %}{{ students|length }} student(s){% endif %}</p>
+    {% if students %}
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Student</th><th>Grade / class</th><th>Assignments</th><th>Tests</th><th>Exams</th><th>Overall</th><th></th></tr></thead>
+            <tbody>
+            {% for student in students %}
+            <tr>
+                <td><a class="student-link" href="/students/{{ student.id }}">{{ student.full_name }}</a><small>{{ student.student_number or "No student number" }}</small></td>
+                <td>{{ student.grade }}</td>
+                {% for category in ["Assignment", "Test", "Exam"] %}
+                <td>{% if student.summary.categories[category] is not none %}{{ "%.1f"|format(student.summary.categories[category]) }}%{% else %}<span class="muted">—</span>{% endif %}</td>
+                {% endfor %}
+                <td>{% if student.summary.overall is not none %}<span class="score-pill">{{ "%.1f"|format(student.summary.overall) }}%</span>{% else %}<span class="muted">—</span>{% endif %}</td>
+                <td><a class="text-link" href="/students/{{ student.id }}">Details →</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state compact"><span class="empty-icon">⌕</span><h3>No students found.</h3><p>Try a different search or add a student from the dashboard.</p></div>
+    {% endif %}
+</section>
+<p class="method-note"><strong>How marks are calculated:</strong> Each category average is the mean of its assessment percentages. The overall mark is total points earned divided by total points available across all assessments.</p>
+{% endblock %}

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Student Marks{% endblock %} · Student Marks</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/">Classroom<span>·</span>Marks</a>
+        {% if username %}
+        <nav aria-label="Main navigation">
+            <a href="/">Students</a>
+            <a href="/reports">Reports</a>
+            <a href="/export.xlsx">Excel export</a>
+            <a href="/settings/password">Settings</a>
+            <form action="/logout" method="post" class="inline-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button class="nav-button" type="submit">Sign out</button>
+            </form>
+        </nav>
+        {% endif %}
+    </header>
+    <main class="page">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="footer">Student information and marks are stored in your local SQLite database.</footer>
+</body>
+</html>

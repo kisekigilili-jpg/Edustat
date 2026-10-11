@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{{ student.full_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="/">← All students</a>
+<section class="page-heading student-heading">
+    <div>
+        <div class="eyebrow">STUDENT PROFILE · {{ student.grade }}</div>
+        <h1>{{ student.full_name }}</h1>
+        <p class="muted">{{ student.student_number or "No student number" }}</p>
+    </div>
+    <form action="/students/{{ student.id }}/delete" method="post" onsubmit="return confirm('Delete this student and all their marks?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="button danger-quiet" type="submit">Delete student</button>
+    </form>
+</section>
+
+<section class="stats grade-stats">
+    {% for category in categories %}
+    <article class="stat-card"><span>{{ category }} average</span><strong>{% if summary.categories[category] is not none %}{{ "%.1f"|format(summary.categories[category]) }}%{% else %}—{% endif %}</strong></article>
+    {% endfor %}
+    <article class="stat-card featured-stat"><span>Overall · points-based</span><strong>{% if summary.overall is not none %}{{ "%.1f"|format(summary.overall) }}%{% else %}—{% endif %}</strong><small>{{ "%.2f"|format(summary.earned) }} / {{ "%.2f"|format(summary.possible) }} points</small></article>
+</section>
+
+<div class="content-grid detail-grid">
+    <section class="card">
+        <div class="section-heading"><div><div class="eyebrow">MARKBOOK</div><h2>Assessments</h2></div><span class="count-badge">{{ assessments|length }}</span></div>
+        {% if assessments %}
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Assessment</th><th>Type</th><th>Mark</th><th>Date</th><th></th></tr></thead>
+                <tbody>
+                {% for assessment in assessments %}
+                <tr>
+                    <td><strong>{{ assessment.title }}</strong><small>{{ "%.1f"|format(assessment.score / assessment.max_score * 100) }}% of available points</small></td>
+                    <td><span class="type-tag type-{{ assessment.category|lower }}">{{ assessment.category }}</span></td>
+                    <td class="mark-cell">{{ "%.2f"|format(assessment.score) }} <span>/ {{ "%.2f"|format(assessment.max_score) }}</span></td>
+                    <td>{{ assessment.assessed_on }}</td>
+                    <td><form action="/assessments/{{ assessment.id }}/delete" method="post" onsubmit="return confirm('Remove this assessment?')"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="icon-button" aria-label="Delete {{ assessment.title }}" title="Delete assessment" type="submit">×</button></form></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state compact"><span class="empty-icon">—</span><h3>No marks yet.</h3><p>Add the first assessment for this student.</p></div>
+        {% endif %}
+    </section>
+
+    <aside class="card add-card">
+        <div class="eyebrow">RECORD A MARK</div>
+        <h2>New assessment</h2>
+        <form action="/students/{{ student.id }}/assessments" method="post" class="form-stack">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <label>Type<select name="category" required>{% for category in categories %}<option value="{{ category }}">{{ category }}</option>{% endfor %}</select></label>
+            <label>Assessment name<input name="title" maxlength="120" placeholder="e.g. Fractions worksheet" required></label>
+            <div class="field-pair">
+                <label>Score<input name="score" type="number" min="0" step="0.01" placeholder="0" required></label>
+                <label>Out of<input name="max_score" type="number" min="0.01" step="0.01" placeholder="100" required></label>
+            </div>
+            <label>Date<input name="assessed_on" type="date" value="{{ today }}" required></label>
+            <button class="button primary" type="submit">Save mark <span aria-hidden="true">↗</span></button>
+        </form>
+    </aside>
+</div>
+{% endblock %}
